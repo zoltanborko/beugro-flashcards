@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="hu">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Beugró Flashcards</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background: #121212;
+            color: #f0f0f0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        h1 {
+            margin-bottom: 10px;
+            font-weight: 400;
+            letter-spacing: 0.5px;
+        }
+
+        .controls {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-bottom: 18px;
+        }
+
+        button {
+            padding: 10px 18px;
+            border: none;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 15px;
+            background: #2c2c2c;
+            color: #eee;
+            transition: 0.2s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        button:hover {
+            background: #3d3d3d;
+            transform: scale(1.02);
+        }
+
+        .range-panel {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 20px;
+            background: #1e1e1e;
+            padding: 14px 22px;
+            border-radius: 40px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        .range-panel label {
+            font-size: 15px;
+            color: #bbb;
+        }
+
+        .range-panel select {
+            padding: 8px 16px;
+            border-radius: 30px;
+            border: 1px solid #444;
+            background: #2a2a2a;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            outline: none;
+            min-width: 120px;
+        }
+
+        .range-panel select:focus {
+            border-color: #6a8cff;
+        }
+
+        .range-panel .btn-group {
+            display: flex;
+            gap: 8px;
+        }
+
+        .range-panel .btn-group button {
+            background: #383838;
+            padding: 8px 18px;
+            font-size: 14px;
+        }
+
+        .range-panel .btn-group button:hover {
+            background: #4f4f4f;
+        }
+
+        .card-container {
+            perspective: 1200px;
+            width: 90%;
+            max-width: 800px;
+            height: 440px;
+        }
+
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            transform-style: preserve-3d;
+            cursor: pointer;
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .side {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 28px;
+            padding: 30px;
+            backface-visibility: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 24px;
+            overflow-y: auto;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            border: 1px solid #333;
+        }
+
+        .front {
+            background: #1c1c1e;
+            background-image: radial-gradient(circle at 20% 30%, #2a2a2d, #121214);
+        }
+
+        .back {
+            background: #1d3b2a;
+            background-image: radial-gradient(circle at 70% 20%, #2a5a3a, #0f2a1a);
+            transform: rotateY(180deg);
+            font-size: 20px;
+            line-height: 1.6;
+        }
+
+        .counter {
+            margin-top: 22px;
+            opacity: 0.7;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
+        ul {
+            text-align: left;
+            margin: 8px 0;
+            padding-left: 20px;
+        }
+
+        ul li {
+            margin-bottom: 6px;
+        }
+
+        @media (max-width: 600px) {
+            .side {
+                font-size: 18px;
+                padding: 20px;
+            }
+
+            .back {
+                font-size: 16px;
+            }
+
+            .card-container {
+                height: 500px;
+            }
+
+            .range-panel {
+                flex-direction: column;
+                padding: 16px 18px;
+                border-radius: 28px;
+                width: 100%;
+            }
+
+            .range-panel select {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>📚 Adatbázis Beugró Flashcards</h1>
+
+    <div class="controls">
+        <button onclick="prevCard()">⬅ Előző</button>
+        <button onclick="flipCard()">🔄 Fordítás</button>
+        <button onclick="nextCard()">Következő ➡</button>
+        <button onclick="shuffleCards()">🔀 Shuffle</button>
+    </div>
+
+    <div class="range-panel">
+        <label for="rangeSelect">📌 Tartomány:</label>
+        <select id="rangeSelect"></select>
+        <div class="btn-group">
+            <button onclick="applyRange('sequential')">🔢 Sorrend</button>
+            <button onclick="applyRange('random')">🎲 Véletlen</button>
+            <button onclick="clearRange()">♻ Mind</button>
+        </div>
+    </div>
+
+    <div class="card-container">
+        <div class="card" id="card">
+            <div class="side front" id="question"></div>
+            <div class="side back" id="answer"></div>
+        </div>
+    </div>
+
+    <div class="counter" id="counter"></div>
+
+    <script>
+        // ------------------ TELJES ADATBÁZIS (99 kártya) ------------------
+        const fullCardList = [
+            { q: "1. Mit nevezünk felejtő és nem felejtő tárolónak?", a: "<ul><li><b>Felejtő:</b> random elérés, áram nélkül adatvesztés (RAM)</li><li><b>Nem felejtő:</b> szekvenciális elérés, áram nélkül adattartás (HDD, SSD)</li></ul>" },
+            { q: "2. Mi az a RAID?", a: "<ul><li>Redundant Array of Independent Disks</li><li>több szint</li><li>megbízhatóság</li><li>teljesítmény-növelés</li></ul>" },
+            { q: "3. Mit nevezünk puffernek?", a: "<ul><li>Gyorsítótár</li><li>ideiglenes tárolás</li><li>szükséges adatok előre olvasása</li></ul>" },
+            { q: "4. Mi az a lapcsere (lapozás, paging)?", a: "<ul><li>Lap cserélése másikra ha nincs több hely a pufferben</li><li>több algoritmus (toss, LRU, MRU)</li></ul>" },
+            { q: "5. Mit nevezünk piszkos puffernek?", a: "A puffer olyan blokkjait amelyek módosultak de még nem lettek kiírva a lemezre." },
+            { q: "6. Milyen fájlszervezési módok vannak?", a: "<ul><li>kupac</li><li>rendezett</li><li>hash-alapú</li><li>fa-alapú</li></ul>" },
+            { q: "7. Mit jelent a kupac fájlszervezés?", a: "<ul><li>blokkok rendezetlen tárolása</li><li>gyors beszúrás</li><li>lassú keresés, törlés</li></ul>" },
+            { q: "8. Mit jelent a rendezett fájlszervezés?", a: "<ul><li>blokkok és rekordok rendezett tárolása egy mező szerint</li><li>lassú beszúrás, törlés</li><li>gyors logaritmikus keresés</li></ul>" },
+            { q: "9. Mi az a memóriahozzáférés-igazítás (world-alignment)?", a: "<ul><li>az adatokat a CPU szóméret többszöröséhez igazítjuk</li><li>felkerekítés, átrendezés</li></ul>" },
+            { q: "10. Milyen céljaink vannak a fájlszervezés kiválasztásánál?", a: "<ul><li>gyors keresés, beszúrás, törlés</li><li>helytakarékosság</li></ul>" },
+            { q: "11. Mit nevezünk egyenletességi feltételnek a lekérdezések esetén?", a: "<ul><li>SELECT * FROM WHERE A = a;</li><li>A WHERE utáni rekordok száma kb. egyenlő a-től függetlenül</li></ul>" },
+            { q: "12. Milyen algoritmussal kereshetünk rendezett állományban?", a: "<ul><li>bináris kereséssel</li><li>logaritmikus idő</li></ul>" },
+            { q: "13. Milyen hasításokat különböztetünk meg a kosarak száma szerint?", a: "<ul><li>fix kosárszám: statikus hasítás</li><li>változó kosárszám: dinamikus hasítás</li></ul>" },
+            { q: "14. Mit nevezünk statikus hasításnak?", a: "Olyan adatszerkezetet, ami hasítófüggvényt használ és a kosarak száma nem változik." },
+            { q: "15. Mit nevezünk dinamikus hasításnak?", a: "Olyan adatszerkezetet, ami hasítófüggvényt használ és a kosarak száma dinamikusan változik." },
+            { q: "16. Milyen dinamikus hasításokat ismerünk?", a: "<ul><li>Lineáris hasítás</li><li>Kiterjeszthető hasítás</li></ul>" },
+            { q: "17. Milyen szempontok alapján kell hasító függvényt választanunk (2 szempont)?", a: "<ul><li>gyorsaság</li><li>alacsony collision rate</li></ul>" },
+            { q: "18. Mikor jó egy hasítófüggvény és ilyenkor milyen hosszúak a blokkláncok?", a: "<ul><li>ha egyenletesen ossza el a rekordokat</li><li>ekkor kb. B/K a blokkláncok hossza</li></ul>" },
+            { q: "19. Ha túl nagynak választjuk K-t hasításkor, akkor ez milyen problémát okozhat?", a: "K a kosarak száma - túl nagy K esetén túl sok üres kosár lesz, emiatt lassul a hozzáférés és rendezés." },
+            { q: "20. Milyen keresésre nem jó a hasító indexelés?", a: "intervallumos keresésre" },
+            { q: "21. Lineáris hasító index esetén mikor nyitunk meg új kosarat?", a: "ha az előre megadott r/n határt átlépjük" },
+            { q: "22. Mire használhatjuk a hasító táblákat az adatbázisban?", a: "<ul><li>indexstruktúra (nem a leghatékonyabb)</li><li>ideiglenes adatstruktúra (hashjoin)</li><li>belső metaadatok tárolása (laptábla)</li></ul>" },
+            { q: "23. Mit nevezünk elsődleges indexnek?", a: "<ul><li>egy tábla azon mezőjére felépített indexet, amely mező szerint a tábla rendezve van</li><li>csak egy lehet</li></ul>" },
+            { q: "24. Mit nevezünk másodlagos indexnek?", a: "<ul><li>egy tábla nem rendezett mezőjére felépített indexet</li><li>akármennyi lehet belőle</li></ul>" },
+            { q: "25. Mit nevezünk sűrű indexnek?", a: "minden rekordhoz tartozik egy index bejegyzés" },
+            { q: "26. Mit nevezünk ritka indexnek?", a: "<ul><li>csak a blokk első rekordjához tartozik index bejegyzés</li><li>csak elsődleges lehet</li></ul>" },
+            { q: "27. Mit hívunk fedőértéknek?", a: "ritka index esetén a legnagyobb indexérték, amely a keresett értéknél kisebb vagy egyenlő" },
+            { q: "28. Mit nevezünk többszintű indexnek?", a: "már meglévő indexre készítünk még egy indexet" },
+            { q: "29. Mit jelent a B+ fában a „B”?", a: "<ul><li>balanced</li><li>gyökérből minden levélbe ugyanolyan hosszú út vezet</li></ul>" },
+            { q: "30. Hány kulcsot és mutatót tartalmaz egy B+ fa csúcs?", a: "<ul><li>n kulcs</li><li>n+1 mutató</li></ul>" },
+            { q: "31. Hogyan érdemes tárolni az ismétlődő értékeket a B+ fában?", a: "egyedivé tesszük őket (fájl azonosító, elsődleges index)" },
+            { q: "32. Milyen költségeket veszünk figyelembe a fizikai operátorok esetén?", a: "<ul><li>műveleti költségek (IO)</li><li>output méret</li></ul>" },
+            { q: "33. Milyen relációs algebrai műveleteket vezethetünk vissza rendezésre?", a: "<ul><li>halmazműveletek (metszet, unió, különbség)</li><li>rendezés</li><li>vetítés</li></ul>" },
+            { q: "34. A rendezés milyen két fajtáját különböztetjük meg?", a: "<ul><li>belső rendezés</li><li>külső rendezés</li></ul>" },
+            { q: "35. Mennyi a belső rendezés IO költsége?", a: "2 * B(R)" },
+            { q: "36. Külső összefésülő rendezésnél mit csinál a rendezési (sort) lépés?", a: "futamokat készít" },
+            { q: "37. Külső összefésülő rendezésnél mit csinál az összevonási (merge) lépés?", a: "futamokat fésül össze (hosszabb futamokká)" },
+            { q: "38. Külső összefésülő rendezéskor mikor kell több menetben végezni az összevonási lépést?", a: "ha több futam lett az első összefésülés eredménye, mint ahány blokk elfér a memóriában" },
+            { q: "39. A vetítés milyen három lépés megvalósításából áll?", a: "<ul><li>felesleges oszlopok törlése</li><li>ismétlődő rekordok törlése</li><li>reláció rendezése</li></ul>" },
+            { q: "40. Az összekapcsolásnak milyen megvalósításait használjuk (5 algoritmus)?", a: "<ul><li>nested-loop join</li><li>block nested-loop join</li><li>index nested-loop join</li><li>sort-merge join</li><li>hash join</li></ul>" },
+            { q: "41. Az összekapcsolásoknál melyik táblát választjuk külső táblának általában?", a: "a kisebb méretűt" },
+            { q: "42. Milyen esetekben érdemes a sort-merge összekapcsolást használni?", a: "<ul><li>ha a 2 reláció már eleve rendezve van</li><li>ha a 2 relációt rendezni szeretnénk</li><li>ha egyenlőség alapú összekapcsolást végzünk</li></ul>" },
+            { q: "43. Milyen típusú összekapcsolásokra nem használható a hash-join?", a: "intervallumosokra" },
+            { q: "44. Mi a lekérdezések optimalizálásának a célja és miket használunk fel ehhez?", a: "<ul><li>a lekérdezések gyorsabbá tétele</li><li>statisztikák</li><li>szabályok</li><li>indexek</li></ul>" },
+            { q: "45. Mi az a relációs algebrai kifejezésfa?", a: "egy fa relációs algebrai kifejezések ábrázolására" },
+            { q: "46. Milyen költségmodellt használunk relációs algebrai optimalizálás esetében?", a: "részkifejezések méretét" },
+            { q: "47. Milyen módszert használ a szabály alapú (relációs) optimalizáció?", a: "műveleti tulajdonságokon alapuló ekvivalens állításokat" },
+            { q: "48. Miért mondjuk, hogy az eljárás heurisztikus relációs algebrai optimalizálás esetén?", a: "nem a relációk valódi méretével számol" },
+            { q: "49. Miért nem egyértelmű az eredmény relációs algebrai optimalizálás esetén?", a: "az átalakítások sorrendje nem determinisztikus" },
+            { q: "50. A relációs algebrai kifejezésfában melyek az unáris csúcsok?", a: "unáris műveletek (kiválasztás, vetítés, átnevezés)" },
+            { q: "51. A relációs algebrai kifejezésfában melyek a bináris csúcsok?", a: "bináris műveletek (szorzat, összekapcsolás, különbség, unió, metszet)" },
+            { q: "52. A relációs algebrai kifejezésfában mik a levélcsúcsok?", a: "relációk vagy konstans relációk" },
+            { q: "53. Mik azok a relációs algebrai ekvivalencia szabályok?", a: "olyan állítások amelyek relációs algebrai kifejezések ekvivalenciáját fogalmazzák meg" },
+            { q: "54. Miért érdemes hamarabb szelektálni relációs algebrai optimalizálás esetén?", a: "mert így várhatóan kisebb relációkkal kell tovább dolgozni" },
+            { q: "55. Miért érdemes természetes összekapcsolásokat képezni szorzások helyett relációs algebrai optimalizálás esetén?", a: "<ul><li>már az összekapcsoláskor kiszűrjük a nem illeszkedő sorokat</li><li>hatékonyabban kiszámítható</li><li>jelentősen csökken a köztes eredmények száma</li></ul>" },
+            { q: "56. Miért érdemes az unáris műveleteket összevonni relációs algebrai optimalizálás esetén?", a: "csökken a műveletek száma" },
+            { q: "57. Miért érdemes a közös részkifejezéseket megkeresni relációs algebrai optimalizálás esetén?", a: "mert így elég csak egyszer kiszámolni" },
+            { q: "58. Hogyan néz ki a bal-mély összekapcsolási fa?", a: "<ul><li>teljesen balra dől a fa</li><li>jobb oldali gyerek egyetlen tábla</li><li>baloldali gyerek egy további összekapcsolás</li></ul>" },
+            { q: "59. Hogyan néz ki a bozótszerű összekapcsolási fa?", a: "bármely összekapcsolás bármely oldalán tetszőleges méretű részfa lehet" },
+            { q: "60. Milyen típusú összekapcsolási fákat érdemes vizsgálni?", a: "<ul><li>bal mély összekapcsolási fákat</li><li>valószínűleg végig a memóriában lehet végezni az összekapcsolásokat</li></ul>" },
+            { q: "61. Mit nevezünk az adatbázisban tranzakciónak?", a: "egy logikai egységbe tartozó utasítások sorozatát" },
+            { q: "62. Mi az ACID betűszó egyes betűinek jelentése?", a: "<ul><li>A - atomicity</li><li>C - consistency</li><li>I - isolation</li><li>D - durability</li></ul>" },
+            { q: "63. Mit jelent a tranzakció ACID-ból az A-hoz tartozó tulajdonsága?", a: "mindent vagy semmit (vagy az egész tranzakció végrehajtódik vagy semmi belőle)" },
+            { q: "64. Mit jelent a tranzakció ACID-ból a C-hez tartozó tulajdonsága?", a: "a tranzakció után megmaradnak a konzisztencia feltételek (PRIMARY KEY, UNIQUE, stb.)" },
+            { q: "65. Mit jelent a tranzakció ACID-ból az I-hez tartozó tulajdonsága?", a: "tranzakció úgy fut le, mintha csak az az egy futna" },
+            { q: "66. Mit jelent a tranzakció ACID-ból a D-hez tartozó tulajdonsága?", a: "a tranzakció befejeztével annak hatása minden esetben megmarad" },
+            { q: "67. A tranzakciók mely tulajdonságát biztosítja a naplózás?", a: "durability (hiba esetén visszaállítjuk a tranzakciót)" },
+            { q: "68. A tranzakciók mely tulajdonságát biztosítja a konkurenciakezelés?", a: "isolation (a konkurenciakezelés hatására a tranzakciók nem ütköznek egymással)" },
+            { q: "69. Milyen típusú hibák fordulhatnak elő?", a: "<ul><li>hibás bevitel (telefonszám formátum)</li><li>rendszerhiba (áramkimaradás)</li><li>készülékhiba (lemez sérülés)</li><li>katasztrófális (tűz, vírus)</li></ul>" },
+            { q: "70. Mit tekinthetünk adatbáziselemnek?", a: "olyan funkcionális egység, aminek az értékét lehet olvasni (blokk, rekord, reláció)" },
+            { q: "71. A tranzakció és az adatbázis kölcsönhatásának milyen három fontos helyszíne van?", a: "<ul><li>lemez</li><li>pufferészlet</li><li>a tranzakció memóriaterülete</li></ul>" },
+            { q: "72. Mit jelent az INPUT(X) művelet?", a: "az X adatbáziselemet a lemezről a pufferkészletbe másoljuk" },
+            { q: "73. Mit jelent a OUTPUT(X) művelet?", a: "az X adatbáziselemet a pufferkészletből a lemezre másoljuk" },
+            { q: "74. Mit jelent a READ(X, t) művelet?", a: "Az X adatbáziselemet a pufferkészletből beleírjuk a tranzakció t változójába (ha az elem nincs a pufferben először INPUT(X) történik)" },
+            { q: "75. Mit jelent a WRITE(X, t) művelet?", a: "A tranzakció t változójának értékét bemásoljuk az X adatbáziselembe." },
+            { q: "76. Miből áll a napló?", a: "naplóbejegyzések sorozata (start, commit, end, abort, write, output, flush log)" },
+            { q: "77. Milyen naplózási megközelítéseket ismerünk?", a: "<ul><li>UNDO</li><li>REDO</li><li>UNDO/REDO</li></ul>" },
+            { q: "78. Mi az UNDO naplózás hátránya?", a: "a tranzakció befejezésekor az adatokat azonnal a lemezre kell írni, így nő a lemezműveletek száma" },
+            { q: "79. Mi a REDO naplózás hátránya?", a: "pufferben kell tárolni minden módosított adatbáziselemet, így nő a tranzakciók pufferigénye" },
+            { q: "80. Mit jelent a WAL elv?", a: "<ul><li>write-ahead log</li><li>minden módosítás előtt a módosításra vonatkozó naplóbejegyzést írjuk ki a lemezre</li></ul>" },
+            { q: "81. Milyen naplózást használ az ORACLE?", a: "UNDO és REDO egy speciális keverékét" },
+            { q: "82. Mi a különbség az ARCHIVELOG és NOARCHIVELOG működése között?", a: "<ul><li>ARCHIVELOG: a betelt naplókról másolat készül</li><li>NOARCHIVELOG: a betelt naplók másolat nélkül felülíródnak</li></ul>" },
+            { q: "83. Mik azok a rollback szegmensek az ORACLE adatbázisban?", a: "tranzakciók semmissé tételéhez szükséges információkat tárolja (módosított adatok régi értéke)" },
+            { q: "84. Mit jelent a naplózás naplózása?", a: "rollback bejegyzés rollback szegmensbe kerülésekor is készül bejegyzés a naplóba" },
+            { q: "85. Milyen két típusa van az adatbázis mentésének?", a: "<ul><li>teljes mentés: egész adatbázisról készül másolat</li><li>növekményes mentés: csak az előző teljes vagy növekményes mentés óta történt változásokról készül másolat</li></ul>" },
+            { q: "86. Mit hívunk ütemezésnek?", a: "egy vagy több tranzakció által végrehajtott műveletek időrendben vett sorozata" },
+            { q: "87. Mit hívunk soros ütemezésnek?", a: "sorban először az egyik tranzakció összes művelete van, majd a következőé, stb." },
+            { q: "88. Mi a soros ütemezés hátránya?", a: "<ul><li>a tranzakciók egymásra várnak</li><li>nem tudja kihasználni a több magos CPU-kat</li></ul>" },
+            { q: "89. Mikor konfliktus-ekvivalens két ütemezés?", a: "amikor nem konfliktusos műveletpárok cseréjével az egyik átalakítható a másikba" },
+            { q: "90. Milyen két megközelítése van az ütemezések sorbarendezhetőségének elérésére?", a: "<ul><li>passzív: néha megnézzük van-e kör a megelőzési gráfban</li><li>aktív: teszünk ellene, hogy ne alakuljon ki kör a megelőzési gráfban</li></ul>" },
+            { q: "91. Az aktív módszer milyen eszközöket használhat a sorbarendezhetőség elérésére?", a: "zárak, időbélyegzés" },
+            { q: "92. Mi az a holtpont?", a: "amikor a tranzakciók egymásra várakoznak (legalább 2)" },
+            { q: "93. Milyen két megközelítése van a holtpont kezelésnek?", a: "<ul><li>optimista: felismerés és megszüntetés</li><li>pesszimista: megelőzés</li></ul>" },
+            { q: "94. Mit jelent az éhezés tranzakciók esetén?", a: "minden tranzakció ugyanarra a zárra vár, amikor felszabadul valaki újra lefoglalja" },
+            { q: "95. Milyen típusú zárakat használunk többmódú zárolás esetén?", a: "osztott, kizárólagos (esetleg módosító, növelő)" },
+            { q: "96. Milyen elemeit zárolhatjuk az adatbázisnak többféle szemcsézettségű zárral?", a: "adatbázis, reláció, blokk, sor, oszlop" },
+            { q: "97. Mi az a nem ismételhető olvasás?", a: "a tranzakció újraolvas sorokat amelyeket korábban olvasott és egy másik tranzakció módosított/törölt közülük" },
+            { q: "98. Mik azok a fantom sorok?", a: "olyan sorok, amelyeket egy tranzakció korábban már olvasott és egy másik tranzakció új sorokat szúrt be közéjük" },
+            { q: "99. Milyen optimista módjai vannak a sorbarendezhetőség elérésének?", a: "időbélyegzés, érvényesítés" }
+        ];
+
+        // ------------------ ÁLLAPOT ------------------
+        let current = 0;
+        let cards = [...fullCardList];
+
+        const card = document.getElementById("card");
+        const question = document.getElementById("question");
+        const answer = document.getElementById("answer");
+        const counter = document.getElementById("counter");
+        const rangeSelect = document.getElementById("rangeSelect");
+
+        // ------------------ FELTÖLTJÜK A LEGÖRDÜLŐT ------------------
+        function buildRangeOptions() {
+            const total = fullCardList.length;
+            const step = 20;
+            let options = [];
+
+            // Minden blokk: 1-20, 21-40, ...
+            for (let i = 0; i < total; i += step) {
+                const start = i + 1;
+                const end = Math.min(i + step, total);
+                options.push({ start, end, label: `${start} - ${end}` });
+            }
+
+            // Kitöltjük a selectet
+            rangeSelect.innerHTML = '';
+            options.forEach(opt => {
+                const option = document.createElement('option');
+                option.value = `${opt.start}-${opt.end}`;
+                option.textContent = opt.label;
+                rangeSelect.appendChild(option);
+            });
+
+            // Alapértelmezett kiválasztás: első (1-20)
+            rangeSelect.value = '1-20';
+        }
+
+        // ------------------ RANGE ALKALMAZÁSA ------------------
+        function applyRange(mode) {
+            const val = rangeSelect.value;
+            if (!val) return;
+
+            const parts = val.split('-');
+            const start = parseInt(parts[0]);
+            const end = parseInt(parts[1]);
+
+            // Kiválasztjuk a kártyákat a teljes listából
+            let selected = [];
+            for (let i = start - 1; i < end && i < fullCardList.length; i++) {
+                selected.push(fullCardList[i]);
+            }
+
+            if (selected.length === 0) {
+                alert('Nincs kártya ebben a tartományban!');
+                return;
+            }
+
+            if (mode === 'random') {
+                // Véletlen sorrend
+                for (let i = selected.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [selected[i], selected[j]] = [selected[j], selected[i]];
+                }
+            }
+            // mode === 'sequential' -> marad a sorrend
+
+            cards = selected;
+            current = 0;
+            renderCard();
+        }
+
+        // ------------------ CLEAR RANGE (minden kártya) ------------------
+        function clearRange() {
+            cards = [...fullCardList];
+            current = 0;
+            renderCard();
+            // Visszaállítjuk a selectet az elsőre
+            rangeSelect.value = '1-20';
+        }
+
+        // ------------------ KÁRTYA KEZELÉS ------------------
+        function renderCard() {
+            if (cards.length === 0) {
+                question.innerHTML = 'Nincs kártya';
+                answer.innerHTML = '';
+                counter.innerText = '0 / 0';
+                return;
+            }
+            card.classList.remove("flipped");
+            question.innerHTML = cards[current].q;
+            answer.innerHTML = cards[current].a;
+            counter.innerText = `${current + 1} / ${cards.length}`;
+        }
+
+        function flipCard() {
+            card.classList.toggle("flipped");
+        }
+
+        function nextCard() {
+            if (cards.length === 0) return;
+            current = (current + 1) % cards.length;
+            renderCard();
+        }
+
+        function prevCard() {
+            if (cards.length === 0) return;
+            current = (current - 1 + cards.length) % cards.length;
+            renderCard();
+        }
+
+        function shuffleCards() {
+            if (cards.length === 0) return;
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+            current = 0;
+            renderCard();
+        }
+
+        // ------------------ ESEMÉNYEK ------------------
+        card.addEventListener("click", flipCard);
+
+        document.addEventListener("keydown", (e) => {
+            if (e.code === "Space" || e.code === "ArrowUp" || e.code === "ArrowDown") {
+                e.preventDefault();
+                flipCard();
+            }
+            if (e.code === "ArrowRight") {
+                e.preventDefault();
+                nextCard();
+            }
+            if (e.code === "ArrowLeft") {
+                e.preventDefault();
+                prevCard();
+            }
+        });
+
+        // ------------------ INDÍTÁS ------------------
+        buildRangeOptions();
+        renderCard();
+
+        // Globális függvények a HTML onclick-ekhez
+        window.prevCard = prevCard;
+        window.flipCard = flipCard;
+        window.nextCard = nextCard;
+        window.shuffleCards = shuffleCards;
+        window.applyRange = applyRange;
+        window.clearRange = clearRange;
+    </script>
+
+</body>
+
+</html>
