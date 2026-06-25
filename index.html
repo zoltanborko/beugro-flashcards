@@ -3,11 +3,12 @@
 
 <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes" />
     <title>Beugró Flashcards</title>
     <style>
         * {
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
@@ -19,34 +20,40 @@
             flex-direction: column;
             align-items: center;
             min-height: 100vh;
-            padding: 20px;
+            padding: 16px 12px 30px;
+            touch-action: pan-y;
         }
 
         h1 {
-            margin-bottom: 10px;
+            margin-bottom: 8px;
             font-weight: 400;
             letter-spacing: 0.5px;
+            font-size: 1.6rem;
+            text-align: center;
         }
 
         .controls {
             display: flex;
-            gap: 12px;
+            gap: 10px;
             flex-wrap: wrap;
             justify-content: center;
-            margin-bottom: 18px;
+            margin-bottom: 14px;
         }
 
         button {
-            padding: 10px 18px;
+            padding: 10px 16px;
             border: none;
             border-radius: 30px;
             cursor: pointer;
             font-size: 15px;
             background: #2c2c2c;
             color: #eee;
-            transition: 0.2s ease;
+            transition: 0.15s ease;
             font-weight: 500;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         button:hover {
@@ -54,17 +61,23 @@
             transform: scale(1.02);
         }
 
+        button:active {
+            transform: scale(0.96);
+        }
+
         .range-panel {
             display: flex;
             flex-wrap: wrap;
-            gap: 12px;
+            gap: 10px;
             justify-content: center;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
             background: #1e1e1e;
-            padding: 14px 22px;
+            padding: 12px 18px;
             border-radius: 40px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+            width: 100%;
+            max-width: 700px;
         }
 
         .range-panel label {
@@ -73,7 +86,7 @@
         }
 
         .range-panel select {
-            padding: 8px 16px;
+            padding: 8px 14px;
             border-radius: 30px;
             border: 1px solid #444;
             background: #2a2a2a;
@@ -81,7 +94,8 @@
             font-size: 15px;
             cursor: pointer;
             outline: none;
-            min-width: 120px;
+            min-width: 110px;
+            flex: 1 1 120px;
         }
 
         .range-panel select:focus {
@@ -90,13 +104,15 @@
 
         .range-panel .btn-group {
             display: flex;
-            gap: 8px;
+            gap: 6px;
+            flex-wrap: wrap;
+            justify-content: center;
         }
 
         .range-panel .btn-group button {
             background: #383838;
-            padding: 8px 18px;
-            font-size: 14px;
+            padding: 7px 14px;
+            font-size: 13px;
         }
 
         .range-panel .btn-group button:hover {
@@ -105,18 +121,22 @@
 
         .card-container {
             perspective: 1200px;
-            width: 90%;
+            width: 100%;
             max-width: 800px;
             height: 440px;
+            touch-action: none;
+            /* prevent scroll while swiping card */
+            position: relative;
         }
 
         .card {
             width: 100%;
             height: 100%;
             position: relative;
-            transition: transform 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
             transform-style: preserve-3d;
             cursor: pointer;
+            touch-action: none;
         }
 
         .card.flipped {
@@ -128,7 +148,7 @@
             width: 100%;
             height: 100%;
             border-radius: 28px;
-            padding: 30px;
+            padding: 28px 22px;
             backface-visibility: hidden;
             display: flex;
             align-items: center;
@@ -138,6 +158,7 @@
             overflow-y: auto;
             box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
             border: 1px solid #333;
+            word-break: break-word;
         }
 
         .front {
@@ -154,7 +175,7 @@
         }
 
         .counter {
-            margin-top: 22px;
+            margin-top: 18px;
             opacity: 0.7;
             font-size: 16px;
             letter-spacing: 1px;
@@ -170,10 +191,18 @@
             margin-bottom: 6px;
         }
 
+        /* ----- SWIPE indikátor (opcionális) ----- */
+        .swipe-hint {
+            margin-top: 8px;
+            font-size: 13px;
+            opacity: 0.4;
+            letter-spacing: 0.3px;
+        }
+
         @media (max-width: 600px) {
             .side {
                 font-size: 18px;
-                padding: 20px;
+                padding: 20px 16px;
             }
 
             .back {
@@ -181,18 +210,40 @@
             }
 
             .card-container {
-                height: 500px;
+                height: 480px;
             }
 
             .range-panel {
                 flex-direction: column;
-                padding: 16px 18px;
+                padding: 14px 16px;
                 border-radius: 28px;
                 width: 100%;
             }
 
             .range-panel select {
                 width: 100%;
+            }
+
+            h1 {
+                font-size: 1.3rem;
+            }
+
+            .controls button {
+                padding: 8px 14px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 400px) {
+            .card-container {
+                height: 520px;
+            }
+            .side {
+                font-size: 16px;
+                padding: 16px 12px;
+            }
+            .back {
+                font-size: 15px;
             }
         }
     </style>
@@ -219,7 +270,7 @@
         </div>
     </div>
 
-    <div class="card-container">
+    <div class="card-container" id="cardContainer">
         <div class="card" id="card">
             <div class="side front" id="question"></div>
             <div class="side back" id="answer"></div>
@@ -227,6 +278,7 @@
     </div>
 
     <div class="counter" id="counter"></div>
+    <div class="swipe-hint">⬅️ 👆 Húzz a lapozáshoz</div>
 
     <script>
         // ------------------ TELJES ADATBÁZIS (99 kártya) ------------------
@@ -341,6 +393,7 @@
         const answer = document.getElementById("answer");
         const counter = document.getElementById("counter");
         const rangeSelect = document.getElementById("rangeSelect");
+        const container = document.getElementById("cardContainer");
 
         // ------------------ FELTÖLTJÜK A LEGÖRDÜLŐT ------------------
         function buildRangeOptions() {
@@ -348,14 +401,12 @@
             const step = 20;
             let options = [];
 
-            // Minden blokk: 1-20, 21-40, ...
             for (let i = 0; i < total; i += step) {
                 const start = i + 1;
                 const end = Math.min(i + step, total);
                 options.push({ start, end, label: `${start} - ${end}` });
             }
 
-            // Kitöltjük a selectet
             rangeSelect.innerHTML = '';
             options.forEach(opt => {
                 const option = document.createElement('option');
@@ -364,7 +415,6 @@
                 rangeSelect.appendChild(option);
             });
 
-            // Alapértelmezett kiválasztás: első (1-20)
             rangeSelect.value = '1-20';
         }
 
@@ -377,7 +427,6 @@
             const start = parseInt(parts[0]);
             const end = parseInt(parts[1]);
 
-            // Kiválasztjuk a kártyákat a teljes listából
             let selected = [];
             for (let i = start - 1; i < end && i < fullCardList.length; i++) {
                 selected.push(fullCardList[i]);
@@ -389,25 +438,21 @@
             }
 
             if (mode === 'random') {
-                // Véletlen sorrend
                 for (let i = selected.length - 1; i > 0; i--) {
                     const j = Math.floor(Math.random() * (i + 1));
                     [selected[i], selected[j]] = [selected[j], selected[i]];
                 }
             }
-            // mode === 'sequential' -> marad a sorrend
 
             cards = selected;
             current = 0;
             renderCard();
         }
 
-        // ------------------ CLEAR RANGE (minden kártya) ------------------
         function clearRange() {
             cards = [...fullCardList];
             current = 0;
             renderCard();
-            // Visszaállítjuk a selectet az elsőre
             rangeSelect.value = '1-20';
         }
 
@@ -451,8 +496,65 @@
             renderCard();
         }
 
-        // ------------------ ESEMÉNYEK ------------------
-        card.addEventListener("click", flipCard);
+        // ------------------ SWIPE (érintő) ------------------
+        let touchStartX = 0;
+        let touchStartY = 0;
+        let touchEndX = 0;
+        let touchEndY = 0;
+        let isSwiping = false;
+
+        // A kártyán és a konténeren is kezeljük, hogy mindenképp elkapjuk
+        const swipeElement = container;
+
+        swipeElement.addEventListener('touchstart', (e) => {
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            touchEndX = touchStartX;
+            touchEndY = touchStartY;
+            isSwiping = true;
+        }, { passive: true });
+
+        swipeElement.addEventListener('touchmove', (e) => {
+            if (!isSwiping) return;
+            // csak az X irányú mozgást figyeljük (vízszintes swipe)
+            const touch = e.touches[0];
+            touchEndX = touch.clientX;
+            touchEndY = touch.clientY;
+            // prevent scroll only if horizontal swipe is dominant
+            const deltaX = Math.abs(touchEndX - touchStartX);
+            const deltaY = Math.abs(touchEndY - touchStartY);
+            if (deltaX > deltaY && deltaX > 15) {
+                e.preventDefault(); // megakadályozzuk az oldal görgetését
+            }
+        }, { passive: false });
+
+        swipeElement.addEventListener('touchend', (e) => {
+            if (!isSwiping) return;
+            isSwiping = false;
+
+            const deltaX = touchEndX - touchStartX;
+            const deltaY = touchEndY - touchStartY;
+
+            // Ha vízszintes a swipe és elég hosszú
+            if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 40) {
+                if (deltaX < 0) {
+                    // balra húzás -> következő
+                    nextCard();
+                } else {
+                    // jobbra húzás -> előző
+                    prevCard();
+                }
+                // Apró rezgés visszajelzés (ha támogatott)
+                if (navigator.vibrate) navigator.vibrate(12);
+            }
+        }, { passive: true });
+
+        // ------------------ BILLENTYŰZET ------------------
+        card.addEventListener("click", (e) => {
+            // Ne kapcsoljon, ha a swipe miatt történt (de így is jó)
+            flipCard();
+        });
 
         document.addEventListener("keydown", (e) => {
             if (e.code === "Space" || e.code === "ArrowUp" || e.code === "ArrowDown") {
@@ -473,7 +575,7 @@
         buildRangeOptions();
         renderCard();
 
-        // Globális függvények a HTML onclick-ekhez
+        // Globális függvények
         window.prevCard = prevCard;
         window.flipCard = flipCard;
         window.nextCard = nextCard;
